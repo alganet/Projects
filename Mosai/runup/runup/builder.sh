@@ -10,6 +10,11 @@ runup_builder () {
 		remove_number="s/^${line}//"
 		empty_line="/^${line}$/"
 		close_fence="s/^\(${line}\)\(~~~\|\`\`\`\).*/\1\2/"
+		doc_text_mark="
+				h
+				s/^\([0-9][0-9]*\)${tab}\(.*\)/text_at_\1/p
+				x
+		"
         cat <<-SED
 			:stream
 			    ${stream_doc} { b _file }
@@ -24,9 +29,7 @@ runup_builder () {
 			:_file
 				i # Begin File
 				i # Raw Text
-				h
-				s/^\([0-9][0-9]*\)${tab}\(.*\)/text_at_\1/p
-				x
+				${doc_text_mark}
 				n
 			    b _body_in
 
@@ -56,9 +59,7 @@ runup_builder () {
 			:_elink
 				i # End Text
 				i # Raw Text
-				h
-				s/^\([0-9][0-9]*\)${tab}\(.*\)/text_at_\1/p
-				x
+				${doc_text_mark}
 				h
 				s${doc_elink}\2/
 				s/[^a-zA-Z0-9]/_/g
@@ -203,9 +204,7 @@ runup_builder () {
 			:_code_indented_close
 				i # End Code Indent
 				i # Begin Text
-				h
-				s/^\([0-9][0-9]*\)${tab}\(.*\)/text_at_\1/p
-				x
+				${doc_text_mark}
 				b _body
 
 			:_code_fenced
@@ -243,9 +242,7 @@ runup_builder () {
 				$ { b endstream }
 				n
 				a # Begin Text
-				h
-				s/^\([0-9][0-9]*\)${tab}\(.*\)/text_at_\1/p
-				x
+				${doc_text_mark}
 				b _body_in
 
 			:endbody
