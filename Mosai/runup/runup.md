@@ -3,11 +3,6 @@ runup
 
 A format and tool for running code blocks inside markdown files automatically.
 
- - list all commands and subcommands
- - execute a command and/or subcommands
- - prove that all code blocks are marked and work
- -
-
 --
 
 Create a markdown-compatible document with marked code blocks:

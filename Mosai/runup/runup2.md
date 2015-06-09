@@ -1,9 +1,7 @@
 runup
 =====
 
-*runup* stands for **R**ead **E**val **A**ssert **L**oop.
-
-It is both a tool and a format for running runup code interactions inside technical markdown documents.
+A format and tool for running code blocks inside markdown files automatically.
 
 ---
 
@@ -27,7 +25,7 @@ A Hello World sample:
 
 Now run it to see results and output:
 
-[ ]:real
+[ ]:real:example:main
 
 ~~~
 $ ./runup.sh run "runup_example.md"

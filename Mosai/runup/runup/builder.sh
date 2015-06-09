@@ -14,7 +14,7 @@ runup_builder () {
 			:stream
 			    ${stream_doc} { b _file }
 				h
-				s/^/# Begin Code/
+				s/^/# Begin Stream/
 				p
 				$ { b endstream }
 				g
@@ -22,8 +22,11 @@ runup_builder () {
 			    b stream
 
 			:_file
-				a # Begin File
-				a # Raw Text
+				i # Begin File
+				i # Raw Text
+				h
+				s/^\([0-9][0-9]*\)${tab}\(.*\)/text_at_\1/p
+				x
 				n
 			    b _body_in
 
@@ -52,7 +55,10 @@ runup_builder () {
 
 			:_elink
 				i # End Text
-				a # Raw Text
+				i # Raw Text
+				h
+				s/^\([0-9][0-9]*\)${tab}\(.*\)/text_at_\1/p
+				x
 				h
 				s${doc_elink}\2/
 				s/[^a-zA-Z0-9]/_/g
@@ -197,6 +203,9 @@ runup_builder () {
 			:_code_indented_close
 				i # End Code Indent
 				i # Begin Text
+				h
+				s/^\([0-9][0-9]*\)${tab}\(.*\)/text_at_\1/p
+				x
 				b _body
 
 			:_code_fenced
@@ -229,35 +238,38 @@ runup_builder () {
 
 			:_code_fenced_close
 		        ${close_fence}
-				s/^/# End Code Fence	/
+				s/^/# End Stream Fence	/
 				p
 				$ { b endstream }
-				a # Begin Text
 				n
+				a # Begin Text
+				h
+				s/^\([0-9][0-9]*\)${tab}\(.*\)/text_at_\1/p
+				x
 				b _body_in
 
 			:endbody
 				a # End Text
 				a # End File
-				a # End Code
+				a # End Stream
 				q
 			:endcodeout
 				a # End Output
 			:endcode
 				a # End Code Indent
 				a # End File
-				a # End Code
+				a # End Stream
 				q
 			:endfenceout
 				a # End Output
 			:endfence
-				a # End Code Fence
+				a # End Stream Fence
 				a # End File
-				a # End Code
+				a # End Stream
 				q
 			:endstream
 				a # End File
-				a # End Code
+				a # End Stream
 				q
 
 		SED
