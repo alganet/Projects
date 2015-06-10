@@ -94,10 +94,16 @@ runup_builder () {
 				p
 				$ { b endfence }
 				n
-				/^${line}\\$/! b _code_fenced_in
+				/^${line}\\$/! {
+					i cat <<'OUTPUT'
+					b _code_fenced_in
+				}
 				i # Begin Input
+				i cat <<'INPUT'
+				a INPUT
 				a # End Input
 				a # Begin Output
+				a cat <<'OUTPUT'
 				###  EINPUT
 				${remove_number}
 
@@ -106,10 +112,14 @@ runup_builder () {
 				n
 			:_ecode_fenced_in
 				/^${line}\\$/ {
+					i OUTPUT
 					i # End Output
 					i # Begin Input
+					i cat <<'INPUT'
+					a INPUT
 					a # End Input
 					a # Begin Output
+					a cat <<'OUTPUT'
 					###  EINPUT
 					${remove_number}
 
@@ -159,7 +169,7 @@ runup_builder () {
 				a INPUT
 				a # End Input
 				a # Begin Output
-				a CAT <<'OUTPUT'
+				a cat <<'OUTPUT'
 				###  EINPUT
 				s/^${line}${tab}*//
 
@@ -175,7 +185,7 @@ runup_builder () {
 					a INPUT
 					a # End Input
 					a # Begin Output
-					a CAT <<'OUTPUT'
+					a cat <<'OUTPUT'
 					###  EINPUT
 					s/^${line}${tab}*//
 
@@ -254,15 +264,19 @@ runup_builder () {
 
 			:_code_fenced_close
 		        ${close_fence}
-				s/^/# End Stream Fence	/
+				s/^/# End Fence	/
+		        i OUTPUT
+		        i }
 				p
 				$ { b endstream }
 				n
-				a # Begin Text
+				i # Begin Text
 				${doc_text_mark}
 				b _body_in
 
 			:endbody
+				a TEXT
+				a }
 				a # End Text
 				a # End File
 				a # End Stream
@@ -277,9 +291,11 @@ runup_builder () {
 				a # End Stream
 				q
 			:endfenceout
+		    	a OUTPUT
 				a # End Output
 			:endfence
-				a # End Stream Fence
+				a }
+				a # End Fence
 				a # End File
 				a # End Stream
 				q
