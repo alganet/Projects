@@ -31,7 +31,7 @@ runup_option_help () {
 		Usage: runup [OPTIONS] [COMMAND]
 	HELP
 }
-
+	
 runup_context () {
 	test -z "${name}" && return
 	count=$((${count:-0} + 1))

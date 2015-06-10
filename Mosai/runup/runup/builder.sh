@@ -12,7 +12,7 @@ runup_builder () {
 		close_fence="s/^\(${line}\)\(~~~\|\`\`\`\).*/\1\2/"
 		doc_text_mark="
 				h
-				s/^\([0-9][0-9]*\)${tab}\(.*\)/text_at_\1/p
+				s/^\([0-9][0-9]*\)${tab}\(.*\)/text_at_\1 ()/p
 				x
 		"
         cat <<-SED
@@ -58,8 +58,9 @@ runup_builder () {
 
 			:_elink
 				i # End Text
-				i # Raw Text
-				${doc_text_mark}
+				a # Raw Text
+				h
+				x
 				h
 				s${doc_elink}\2/
 				s/[^a-zA-Z0-9]/_/g
@@ -67,6 +68,7 @@ runup_builder () {
 				###  TEXT
 				s${doc_elink}\2\3/
 				s/[^a-zA-Z0-9]/_/g
+				s/$/ ()/
 
 				p
 				$ { b endbody }
