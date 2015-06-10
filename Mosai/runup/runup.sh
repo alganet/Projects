@@ -3,7 +3,7 @@
 . ../dispatch/dispatch.sh
 . ../runup/runup/builder.sh
 
-runup_sed="${PWD}/../runup/runup.se"
+runup_sed="${PWD}/../runup/runup.sed"
 runup_tab=$(printf '\t')
 
 runup () {
@@ -24,7 +24,7 @@ runup_option_V () {
 
 runup_option_version () {
 	echo 'prototype'
-}
+}	
 
 runup_option_help () {
 	cat <<-HELP
@@ -56,7 +56,6 @@ runup_command_transpile () {
 		runup_prepare "${PWD}/${1}"
 		shift
 	done | ${transpile_sed} "${runup_sed}"
-		#statements
 }
 
 runup_command_build () {

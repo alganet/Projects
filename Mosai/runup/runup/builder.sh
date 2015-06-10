@@ -12,7 +12,8 @@ runup_builder () {
 		close_fence="s/^\(${line}\)\(~~~\|\`\`\`\).*/\1\2/"
 		doc_text_mark="
 				h
-				s/^\([0-9][0-9]*\)${tab}\(.*\)/text_at_\1 ()/p
+				s/^\([0-9][0-9]*\)${tab}\(.*\)/text_at_\1 () {/p
+				i cat <<'TEXT'
 				x
 		"
         cat <<-SED
@@ -57,8 +58,9 @@ runup_builder () {
 
 
 			:_elink
+				i TEXT
+				i }
 				i # End Text
-				a # Raw Text
 				h
 				x
 				h
@@ -68,7 +70,7 @@ runup_builder () {
 				###  TEXT
 				s${doc_elink}\2\3/
 				s/[^a-zA-Z0-9]/_/g
-				s/$/ ()/
+				s/$/ () {/
 
 				p
 				$ { b endbody }
@@ -88,7 +90,6 @@ runup_builder () {
 				b _body_in
 
 			:_ecode_fenced
-				i # End Text
 				s/^/# Begin Fence	/
 				p
 				$ { b endfence }
@@ -143,15 +144,22 @@ runup_builder () {
 				b _code_fenced_close
 
 			:_ecode_indented_open
-				i # End Text
 				i # Start Code Indent
-				/^${line}${tab}\\$/! b _code_indented
+				/^${line}${tab}\\$/! {
+					i cat <<'OUTPUT'
+					b _code_indented
+				}
 				x
-				/^real$/! { x ; b _code_indented }
+				/^real$/! {
+					b _code_indented 
+				}
 				x
 				i # Begin Input
+				i cat <<'INPUT'
+				a INPUT
 				a # End Input
 				a # Begin Output
+				a CAT <<'OUTPUT'
 				###  EINPUT
 				s/^${line}${tab}*//
 
@@ -160,10 +168,14 @@ runup_builder () {
 				n
 			:_ecode_indented
 				/^${line}${tab}\\$/ {
+					i OUTPUT
 					i # End Output
 					i # Begin Input
+					i cat <<'INPUT'
+					a INPUT
 					a # End Input
 					a # Begin Output
+					a CAT <<'OUTPUT'
 					###  EINPUT
 					s/^${line}${tab}*//
 
@@ -181,22 +193,22 @@ runup_builder () {
 			    ${doc_indent} { b _ecode_indented }
 			    ${empty_line}   { b _ecode_indented }
 			    ${doc_line}   {
+			    	i OUTPUT
 					i # End Output
 			    	b _code_indented_close
 			    }
 			    b _docfile
 
 			:_code_indented_open
-				i # End Text
 				i # Begin Code Indent
 				b _code_indented
 
 			:_code_indented
-				###  CODE
+				###  Code
 				s/^${line}${tab}*//
 
 				p
-				$ { b endcode }
+				$ { b endcode }	
 				n
 			    ${doc_indent} { b _code_indented }
 			    ${empty_line}   { b _code_indented }
@@ -204,6 +216,9 @@ runup_builder () {
 			    b _docfile
 
 			:_code_indented_close
+		    	i OUTPUT
+				i }
+				i # End Output
 				i # End Code Indent
 				i # Begin Text
 				${doc_text_mark}
@@ -253,8 +268,10 @@ runup_builder () {
 				a # End Stream
 				q
 			:endcodeout
+		    	a OUTPUT
 				a # End Output
 			:endcode
+				a }
 				a # End Code Indent
 				a # End File
 				a # End Stream
