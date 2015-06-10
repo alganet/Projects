@@ -1,21 +1,33 @@
 runup_builder () {
     (
+    	# A literal tab
         tab=$(printf '\t')
+        # The standard prefix for a document line
         line="[0-9][0-9]*${tab}"
+        # The beginning of a document, prefixed
         stream_doc="/^0${tab}\(.*\)$/"
+        # Any line from a document
         doc_line="/^${line}\(.*\)/"
+        # An indented block of code on a document
         doc_indent="/^${line}\(${tab}\|    \)\(.*\)$/"
+        # The beginning or ending of a code fence
         doc_fence="/^${line}\(~~~\|\`\`\`\)$/"
+        # An invisible link used to reference code blocks
         doc_elink="/^${line}\(\[ \]\:\)\([a-zA-Z0-9]*\)\s*(*\([^)]*\)\s*)*\s*$/"
+		# Sed expression used to remove the standard prefix
 		remove_number="s/^${line}//"
+		# An expression that matches an empty prefixed line
 		empty_line="/^${line}$/"
+		# Sed expression to close an open fence
 		close_fence="s/^\(${line}\)\(~~~\|\`\`\`\).*/\1\2/"
+		# Expression to mark the starting line of a text with a function
 		doc_text_mark="
 				h
 				s/^\([0-9][0-9]*\)${tab}\(.*\)/text_at_\1 () {/p
-				i cat <<'TEXT'
+				i cat <<'OUTPUT'
 				x
 		"
+		# Main sed script built with templates above
         cat <<-SED
 			:stream
 			    ${stream_doc} { b _file }
@@ -58,7 +70,7 @@ runup_builder () {
 
 
 			:_elink
-				i TEXT
+				i OUTPUT
 				i }
 				i # End Text
 				h
@@ -275,7 +287,7 @@ runup_builder () {
 				b _body_in
 
 			:endbody
-				a TEXT
+				a OUTPUT
 				a }
 				a # End Text
 				a # End File
