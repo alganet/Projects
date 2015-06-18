@@ -51,6 +51,8 @@ runup_builder () {
 			    b _body_in
 
 			:_docfile
+				a OUTPUT
+				a }
 				a # End Text
 				a # End File
 				a }
