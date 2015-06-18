@@ -41,6 +41,10 @@ runup_builder () {
 
 			:_file
 				i # Begin File
+				s/^${line}//
+				s/[^a-zA-Z0-9]/_/g
+				s/$/ () {/p
+				i text_at_0 () {
 				i # Raw Text
 				${doc_text_mark}
 				n
@@ -49,6 +53,7 @@ runup_builder () {
 			:_docfile
 				a # End Text
 				a # End File
+				a }
 				n
 			    b stream
 
@@ -173,7 +178,7 @@ runup_builder () {
 				}
 				x
 				/^real$/! {
-					b _code_indented 
+					b _code_indented
 				}
 				x
 				i # Begin Input
@@ -230,7 +235,7 @@ runup_builder () {
 				s/^${line}${tab}*//
 
 				p
-				$ { b endcode }	
+				$ { b endcode }
 				n
 			    ${doc_indent} { b _code_indented }
 			    ${empty_line}   { b _code_indented }
@@ -291,6 +296,7 @@ runup_builder () {
 				a }
 				a # End Text
 				a # End File
+				a }
 				a # End Stream
 				q
 			:endcodeout
@@ -300,6 +306,7 @@ runup_builder () {
 				a }
 				a # End Code Indent
 				a # End File
+				a }
 				a # End Stream
 				q
 			:endfenceout
@@ -309,10 +316,12 @@ runup_builder () {
 				a }
 				a # End Fence
 				a # End File
+				a }
 				a # End Stream
 				q
 			:endstream
 				a # End File
+				a }
 				a # End Stream
 				q
 
