@@ -24,14 +24,20 @@ runup_option_V () {
 
 runup_option_version () {
 	echo 'prototype'
-}	
+}
 
 runup_option_help () {
 	cat <<-HELP
-		Usage: runup [OPTIONS] [COMMAND]
+		Usage: runup [COMMAND]
+
+		Commands: source     [FILE]  Transforms a markdown file in code
+		          statements [FILE]  Lists the code structure for the file
+		          documents  [FILE]  Lists all HEREDOCS from a file
+		          comments   [FILE]  Lists all generated documents for the code
+		          blueprint  [FILE]  Prints the function blueprint for a file
 	HELP
 }
-	
+
 runup_context () {
 	test -z "${name}" && return
 	count=$((${count:-0} + 1))
@@ -41,11 +47,23 @@ runup_context () {
 }
 
 
-runup_command_open () {
-	eval "$(runup_command_transpile "${@:-}")"
+runup_command_statements () {
+	eval "set -v;$(runup_command_source "${@:-}")" 2>&1
 }
 
-runup_command_transpile () {
+runup_command_documents () {
+	runup_command_statements "${@:-}" | sed -n '/^cat/{ s/^cat <<//p }'
+}
+
+runup_command_comments () {
+	runup_command_statements "${@:-}" | sed -n '/^#/p'
+}
+
+runup_command_blueprint () {
+	runup_command_statements "${@:-}" | sed -n '/() {$/p; /^}$/p'
+}
+
+runup_command_source () {
 	[ -f "${runup_sed}" ] &&
 		transpile_sed="sed -n -f" ||
 		transpile_sed="sed -n" runup_sed="$(runup_builder)"
