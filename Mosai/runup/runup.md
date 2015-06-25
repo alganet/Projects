@@ -24,7 +24,7 @@ Create a markdown-compatible document with marked code blocks:
 	```
 
 
-Now run it to see results and output:
+Now run it to see results and output (ymmv, see ./runup.sh --help):
 
 [ ]:real:example:main
 
