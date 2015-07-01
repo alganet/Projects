@@ -190,7 +190,7 @@ runup_builder () {
 				a # Begin Output
 				a cat <<'OUTPUT'
 				###  EINPUT
-				s/^${line}${tab}*//
+				s/^${line}${tab}*\(${tab}\|\s\)*//
 
 				p
 				$ { b endcodeout }
@@ -206,7 +206,7 @@ runup_builder () {
 					a # Begin Output
 					a cat <<'OUTPUT'
 					###  EINPUT
-					s/^${line}${tab}*//
+					s/^${line}${tab}*\(${tab}\|\s\)*//
 
 					p
 					$ { b endcodeout }
@@ -214,7 +214,7 @@ runup_builder () {
 					b _ecode_indented
 				}
 				###  EOUTPUT
-				s/^${line}${tab}*//
+				s/^${line}${tab}*\(${tab}\|\s\)*//
 
 				p
 				$ { b endcodeout }
@@ -234,10 +234,12 @@ runup_builder () {
 
 			:_code_indented
 				###  Code
-				s/^${line}${tab}*//
-
+				s/^${line}${tab}*\(${tab}\|\s\)*//
 				p
-				$ { b endcode }
+				$ {
+
+					b endcodeout
+				}
 				n
 			    ${doc_indent} { b _code_indented }
 			    ${empty_line}   { b _code_indented }
