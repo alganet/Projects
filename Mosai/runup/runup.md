@@ -28,9 +28,5 @@ Now run it to see results and output (ymmv, see ./runup.sh --help):
 
 [ ]:real:example:main
 
-	$ ./runup.sh run "runup_example.md"
-	ok	- my runup Script
-	#	Hello World
-	#	from runup
-	$ echo 3
-	3
+	$ ./runup.sh --help
+	some help content...

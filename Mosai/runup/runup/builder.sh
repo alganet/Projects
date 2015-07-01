@@ -85,10 +85,14 @@ runup_builder () {
 				h
 				s${doc_elink}\2/
 				s/[^a-zA-Z0-9]/_/g
+
 				x
 				###  TEXT
 				s${doc_elink}\2\3/
 				s/[^a-zA-Z0-9]/_/g
+
+				/^$/ { s/^.*$/default/ }
+
 				s/$/ () {/
 
 				p

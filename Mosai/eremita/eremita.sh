@@ -59,6 +59,7 @@ eremita_command_open () {
 	current="$(pwd)"              # Store current folder
 	set --                        # Remove arguments
 	cd "${eremita}"               # Change into eremita folder
+	[ -z "${target}" ] && return
 	. "../${target}/${target}.sh" # Load target source
 	cd "${current}"               # Back to stored folder
 	"${target}" "${args}"         # Open target
