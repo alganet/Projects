@@ -32,8 +32,6 @@ runup_option_help () {
 
 		Commands: source     [FILE]  Transforms a markdown file in code
 		          statements [FILE]  Lists the code structure for the file
-		          documents  [FILE]  Lists all HEREDOCS from a file
-		          comments   [FILE]  Lists all generated documents for the code
 		          blueprint  [FILE]  Prints the function blueprint for a file
 	HELP
 }
@@ -58,13 +56,6 @@ runup_command_statements () {
 	set "${sourceargs}"
 }
 
-runup_command_documents () {
-	runup_command_statements "${@:-}" | runup_filter_documents
-}
-
-runup_command_comments () {
-	runup_command_statements "${@:-}" | sed -n '/^#/p'
-}
 
 runup_command_blueprint () {
 	runup_command_statements "${@:-}" | sed -n '/() {$/p; /^}$/p;/^runup_[A-Za-z0-9_]* () (/p;'
