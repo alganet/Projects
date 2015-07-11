@@ -21,11 +21,27 @@ runup_builder () {
 		empty_line="/^${line}$/"
 		# Sed expression to close an open fence
 		close_fence="s/^\(${line}\)\(~~~\|\`\`\`\).*/\1\2/"
+		# Sed expression to add shell code that expands parameters
+		param_dispatch="a [ -z \"\${@:-}\" ] || ${prefix}\${@:-:}"
+		block_output="i cat <<'OUTPUT' | \"\${1:-cat}\""
+		block_input="i cat <<'INPUT' | \"\${2:-cat}\""
+		fence_common="$(cat <<-SED
+			        G
+
+			        /^${line}~~~\\
+					${line}~~~$/      { b _code_fenced_close }
+
+			        /^${line}\`\`\`\\
+					${line}\`\`\`$/   { b _code_fenced_close }
+
+			        ${close_fence}
+				SED
+		)"
 		# Expression to mark the starting line of a text with a function
 		doc_text_mark="
 				h
 				s/^\([0-9][0-9]*\)${tab}\(.*\)/${prefix}text_\1 () {/p
-				i cat <<'OUTPUT' | "\${1:-cat}"
+				${block_output}
 				x
 		"
 		# Main sed script built with templates above
@@ -51,8 +67,7 @@ runup_builder () {
 
 			:_docfile
 				a OUTPUT
-				a }
-				a [ -z "\${@:-}" ] || ${prefix}\${@:-:}
+				${param_dispatch}
 				a }
 				n
 			    b stream
@@ -116,7 +131,7 @@ runup_builder () {
 					h
 					b _ecode_fenced
 				}
-				i cat <<'OUTPUT' | "\${1:-cat}"
+				${block_output}
 				b _body
 
 			:_ecode_fenced
@@ -125,12 +140,12 @@ runup_builder () {
 				$ { b endfenceout }
 				n
 				/^${line}\\$/! {
-					i cat <<'OUTPUT' | "\${1:-cat}"
+					${block_output}
 					b _code_fenced_in
 				}
-				i cat <<'INPUT' | "\${2:-cat}"
+				${block_input}
 				a INPUT
-				a cat <<'OUTPUT' | "\${1:-cat}"
+				${block_output}
 				###  EINPUT
 				${remove_number}
 
@@ -140,9 +155,9 @@ runup_builder () {
 			:_ecode_fenced_in
 				/^${line}\\$/ {
 					i OUTPUT
-					i cat <<'INPUT' | "\${2:-cat}"
+					${block_input}
 					a INPUT
-					a cat <<'OUTPUT' | "\${1:-cat}"
+					${block_output}
 					###  EINPUT
 					${remove_number}
 
@@ -158,26 +173,15 @@ runup_builder () {
 				$ { b endfenceout }
 				n
 			    ${doc_fence} {
-			        G
-
-			        /^${line}~~~\\
-					${line}~~~$/      { b _ecode_fenced_close }
-
-			        /^${line}\`\`\`\\
-					${line}\`\`\`$/   { b _ecode_fenced_close }
-
-			        ${close_fence}
+			    	${fence_common}
 
 			        b _ecode_fenced_in
 			    }
 			    b _ecode_fenced_in
 
-			:_ecode_fenced_close
-				b _code_fenced_close
-
 			:_ecode_indented_open
 				/^${line}${tab}\\$/! {
-					i cat <<'OUTPUT' | "\${1:-cat}"
+					${block_output}
 					b _code_indented
 				}
 				x
@@ -185,9 +189,9 @@ runup_builder () {
 					b _code_indented
 				}
 				x
-				i cat <<'INPUT' | "\${2:-cat}"
+				${block_input}
 				a INPUT
-				a cat <<'OUTPUT' | "\${1:-cat}"
+				${block_output}
 				###  EINPUT
 				s/^${line}${tab}*\(${tab}\|\s\)*//p
 				$ { b endcodeout }
@@ -195,9 +199,9 @@ runup_builder () {
 			:_ecode_indented
 				/^${line}${tab}\\$/ {
 					i OUTPUT
-					i cat <<'INPUT' | "\${2:-cat}"
+					${block_input}
 					a INPUT
-					a cat <<'OUTPUT' | "\${1:-cat}"
+					${block_output}
 					###  EINPUT
 					s/^${line}${tab}*\(${tab}\|\s\)*//
 
@@ -227,7 +231,7 @@ runup_builder () {
 				s/^\([0-9][0-9]*\)${tab}\(.*\)/${prefix}indent_\1 () {/
 				p
 				x
-				i cat <<'OUTPUT' | "\${1:-cat}"
+				${block_output}
 				b _code_indented
 
 			:_code_indented
@@ -243,6 +247,7 @@ runup_builder () {
 			    ${empty_line}   { b _code_indented }
 			    ${doc_line}   { b _code_indented_close }
 			    ${doc_elink}    { b _elink }
+
 			    b _docfile
 
 			:_code_indented_close
@@ -259,7 +264,7 @@ runup_builder () {
 				$ { b endfenceout }
 				n
 				/^${line}\\$/! {
-					i cat <<'OUTPUT' | "\${1:-cat}"
+					${block_output}
 					b _code_fenced_in
 				}
 			:_code_fenced_in
@@ -270,15 +275,7 @@ runup_builder () {
 				$ { b endfenceout }
 				n
 			    ${doc_fence} {
-			        G
-
-			        /^${line}~~~\\
-					${line}~~~$/      { b _code_fenced_close }
-
-			        /^${line}\`\`\`\\
-					${line}\`\`\`$/   { b _code_fenced_close }
-
-			        ${close_fence}
+			    	${fence_common}
 
 			        b _code_fenced_in
 			    }
@@ -296,32 +293,14 @@ runup_builder () {
 				b _body_in
 
 			:endbody
+			:endcodeout
+			:endfenceout
 				a OUTPUT
 				a }
-				a [ -z "\${@:-}" ] || ${prefix}\${@:-:}
-				a }
-				a [ -z "\${@:-}" ] || ${prefix}\${@:-:}
-				q
-			:endcodeout
-		    	a OUTPUT
-			:endcode
-				a }
-				a [ -z "\${@:-}" ] || ${prefix}\${@:-:}
-				a }
-				a [ -z "\${@:-}" ] || ${prefix}\${@:-:}
-				q
-			:endfenceout
-		    	a OUTPUT
-			:endfence
-				a }
-				a [ -z "\${@:-}" ] || ${prefix}\${@:-:}
-				a }
-				a [ -z "\${@:-}" ] || ${prefix}\${@:-:}
-				q
 			:endstream
-				a [ -z "\${@:-}" ] || ${prefix}\${@:-:}
+				${param_dispatch}
 				a }
-				a [ -z "\${@:-}" ] || ${prefix}\${@:-:}
+				${param_dispatch}
 				q
 
 		SED

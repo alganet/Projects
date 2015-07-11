@@ -1,8 +1,8 @@
 # Begin Stream
 _r_file_8f0643d49be0350b42ee4cf9bcc3065c () {
-_r_path_8f0643d49be0350b42ee4cf9bcc3065c () ( echo '/n/Projects/Prototypes/Mosai/runup/SYNTAX.md' )
+_r_path_8f0643d49be0350b42ee4cf9bcc3065c () ( echo '/n/Projects/Prototypes/Mosai/runup/SYNTAX.md' ) 
 _r_text_0 () {
-cat <<'OUTPUT' | ${1:-cat}
+cat <<'OUTPUT' | "${1:-cat}"
 This document showcases annotations invisible to markdown viewers. It is
 recommended that you see it in plain text.
 
@@ -18,7 +18,7 @@ Below, a raw annotation (rendered invisible):
 OUTPUT
 }
 _r_meta_sample_annotation () {
-_r_prop_name () ( echo '' )
+_r_prop_name () ( echo '' ) 
 
 cat <<'OUTPUT' | "${1:-cat}"
 Below, the same annotation inside a safe code block:
@@ -32,7 +32,7 @@ cat <<'OUTPUT' | "${1:-cat}"
 OUTPUT
 }
 _r_text_19 () {
-cat <<'OUTPUT' | ${1:-cat}
+cat <<'OUTPUT' | "${1:-cat}"
  - Each annotation can target one paragraph, one code block or one code fence.
  - Each annotation is a namespace reference to commands in the `runup`
    command line tool.
@@ -54,7 +54,7 @@ block
 OUTPUT
 }
 _r_text_33 () {
-cat <<'OUTPUT' | ${1:-cat}
+cat <<'OUTPUT' | "${1:-cat}"
 OUTPUT
 }
 _r_fence_33 () {
@@ -64,7 +64,7 @@ OUTPUT
 }
 # End Fence	35	```
 _r_text_36 () {
-cat <<'OUTPUT' | ${1:-cat}
+cat <<'OUTPUT' | "${1:-cat}"
 
 OUTPUT
 }
@@ -75,14 +75,14 @@ OUTPUT
 }
 # End Fence	39	~~~
 _r_text_40 () {
-cat <<'OUTPUT' | ${1:-cat}
+cat <<'OUTPUT' | "${1:-cat}"
 
 ## Annotated
 
 OUTPUT
 }
 _r_meta_sample_indented () {
-_r_prop_name () ( echo '' )
+_r_prop_name () ( echo '' ) 
 
 cat <<'OUTPUT' | "${1:-cat}"
 This
@@ -94,7 +94,7 @@ block
 OUTPUT
 }
 _r_meta_sample_ticked () {
-_r_prop_name () ( echo '' )
+_r_prop_name () ( echo '' ) 
 
 OUTPUT
 }
@@ -105,12 +105,12 @@ OUTPUT
 }
 # End Fence	55	```
 _r_text_56 () {
-cat <<'OUTPUT' | ${1:-cat}
+cat <<'OUTPUT' | "${1:-cat}"
 
 OUTPUT
 }
 _r_meta_sample_tilded () {
-_r_prop_name () ( echo '' )
+_r_prop_name () ( echo '' ) 
 
 OUTPUT
 }
@@ -121,7 +121,7 @@ OUTPUT
 }
 # End Fence	61	~~~
 _r_text_62 () {
-cat <<'OUTPUT' | ${1:-cat}
+cat <<'OUTPUT' | "${1:-cat}"
 
 ## REPL Blocks
 
@@ -129,41 +129,41 @@ cat <<'OUTPUT' | ${1:-cat}
 OUTPUT
 }
 _r_meta_repl_sample_indented () {
-_r_prop_name () ( echo '' )
+_r_prop_name () ( echo '' ) 
 
 cat <<'INPUT' | "${2:-cat}"
+cat <<'OUTPUT' | "${1:-cat}"
 $ echo This is an indented block
 INPUT
-cat <<'OUTPUT' | "${1:-cat}"
 This is an indented block
 
 OUTPUT
 }
 _r_meta_repl_sample_ticked () {
-_r_prop_name () ( echo '' )
+_r_prop_name () ( echo '' ) 
 
 # Begin Fence	73	```
 cat <<'INPUT' | "${2:-cat}"
+cat <<'OUTPUT' | "${1:-cat}"
 $ echo This is a ticked block
 INPUT
-cat <<'OUTPUT' | "${1:-cat}"
 This is a ticked block
 OUTPUT
 }
 # End Fence	76	```
 _r_text_77 () {
-cat <<'OUTPUT' | ${1:-cat}
+cat <<'OUTPUT' | "${1:-cat}"
 
 OUTPUT
 }
 _r_meta_repl_sample_tilded () {
-_r_prop_name () ( echo '' )
+_r_prop_name () ( echo '' ) 
 
 # Begin Fence	80	~~~
 cat <<'INPUT' | "${2:-cat}"
+cat <<'OUTPUT' | "${1:-cat}"
 $ echo This is a tilded block
 INPUT
-cat <<'OUTPUT' | "${1:-cat}"
 This is a tilded block
 OUTPUT
 }
