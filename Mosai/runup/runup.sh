@@ -48,11 +48,18 @@ runup_context () {
 
 
 runup_command_statements () {
-	eval "set -v;$(runup_command_source "${@:-}")" 2>&1
+	sourceargs="${@:-}"
+	set --
+	eval "
+		set -v
+		$(runup_command_source ${sourceargs})
+		set +v
+	" 2>&1
+	set "${sourceargs}"
 }
 
 runup_command_documents () {
-	runup_command_statements "${@:-}" | sed -n '/^cat/{ s/^cat <<//p }'
+	runup_command_statements "${@:-}" | runup_filter_documents
 }
 
 runup_command_comments () {
@@ -60,13 +67,21 @@ runup_command_comments () {
 }
 
 runup_command_blueprint () {
-	runup_command_statements "${@:-}" | sed -n '/() {$/p; /^}$/p'
+	runup_command_statements "${@:-}" | sed -n '/() {$/p; /^}$/p;/^runup_[A-Za-z0-9_]* () (/p;'
+}
+
+runup_command_each () {
+	runup_command_statements "${@:-}" >/dev/null
+	for file in ${@:-}; do
+		hashed="$(echo "${PWD}/${file}" | md5sum --text | sed 's/[^a-f0-9]//g')"
+		runup_file_$hashed runup_prop_name
+	done
 }
 
 runup_command_source () {
 	[ -f "${runup_sed}" ] &&
 		transpile_sed="sed -n -f" ||
-		transpile_sed="sed -n" runup_sed="$(runup_builder)"
+		transpile_sed="sed -n" runup_sed="$(runup_builder '_r_')"
 
 	while [ ! -z "${1:-}" ]
 	do
@@ -82,7 +97,8 @@ runup_command_build () {
 
 runup_prepare () {
 	runup_filename="${1}"
-	echo "0${runup_tab}${runup_filename}"
+	runup_hashed="$(echo "${runup_filename}" | md5sum --text | sed 's/[^a-f0-9]//g')"
+	echo "0${runup_tab}${runup_hashed}${runup_tab}${runup_filename}"
 	sed '=' "$runup_filename" | sed "N;s/\n/${runup_tab}/"
 }
 

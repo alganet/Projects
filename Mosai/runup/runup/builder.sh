@@ -1,5 +1,6 @@
 runup_builder () {
     (
+    	prefix="${1:-${RANDOM}_}"
     	# A literal tab
         tab=$(printf '\t')
         # The standard prefix for a document line
@@ -13,7 +14,7 @@ runup_builder () {
         # The beginning or ending of a code fence
         doc_fence="/^${line}\(~~~\|\`\`\`\)$/"
         # An invisible link used to reference code blocks
-        doc_elink="/^${line}\(\[ \]\:\)\([a-zA-Z0-9]*\)\s*(*\([^)]*\)\s*)*\s*$/"
+        doc_elink="/^\([0-9][0-9]*\)${tab}\(\[ \]\:\)\([a-zA-Z0-9:]*\)\s*(*\([^)]*\)\s*)*\s*$/"
 		# Sed expression used to remove the standard prefix
 		remove_number="s/^${line}//"
 		# An expression that matches an empty prefixed line
@@ -23,8 +24,8 @@ runup_builder () {
 		# Expression to mark the starting line of a text with a function
 		doc_text_mark="
 				h
-				s/^\([0-9][0-9]*\)${tab}\(.*\)/text_at_\1 () {/p
-				i cat <<'OUTPUT'
+				s/^\([0-9][0-9]*\)${tab}\(.*\)/${prefix}text_\1 () {/p
+				i cat <<'OUTPUT' | "\${1:-cat}"
 				x
 		"
 		# Main sed script built with templates above
@@ -40,12 +41,10 @@ runup_builder () {
 			    b stream
 
 			:_file
-				i # Begin File
 				s/^${line}//
-				s/[^a-zA-Z0-9]/_/g
-				s/$/ () {/p
-				i text_at_0 () {
-				i # Raw Text
+				s/^\([a-f0-9]*\)${tab}\(.*\)/${prefix}file_\1 () {\\
+				${prefix}path_\1 () ( echo \'\2\' ) /p
+				i ${prefix}text_0 () {
 				${doc_text_mark}
 				n
 			    b _body_in
@@ -53,8 +52,7 @@ runup_builder () {
 			:_docfile
 				a OUTPUT
 				a }
-				a # End Text
-				a # End File
+				a [ -z "\${@:-}" ] || ${prefix}\${@:-:}
 				a }
 				n
 			    b stream
@@ -79,23 +77,21 @@ runup_builder () {
 			:_elink
 				i OUTPUT
 				i }
-				i # End Text
 				h
 				x
 				h
-				s${doc_elink}\2/
+				s${doc_elink}\3/
 				s/[^a-zA-Z0-9]/_/g
 
+			:_elink_file
 				x
 				###  TEXT
-				s${doc_elink}\2\3/
-				s/[^a-zA-Z0-9]/_/g
-
+				s${doc_elink}${prefix}meta_\3 () {\\
+				${prefix}prop_name () ( echo \'\4\' ) /
+				s/\([a-zA-Z0-9]*\):/\1_/g
 				/^$/ { s/^.*$/default/ }
-
-				s/$/ () {/
-
 				p
+			:_elink_common
 				$ { b endbody }
 				n
 				${empty_line} { b _elink_mark }
@@ -109,24 +105,32 @@ runup_builder () {
 				$ { b endbody }
 				n
 			    ${doc_indent}   { b _ecode_indented_open }
-				${doc_fence}    { h ; b _ecode_fenced }
-				b _body_in
+				${doc_fence}    {
+					x
+					/^repl/! {
+						x
+						h
+						b _code_fenced
+					}
+					x
+					h
+					b _ecode_fenced
+				}
+				i cat <<'OUTPUT' | "\${1:-cat}"
+				b _body
 
 			:_ecode_fenced
 				s/^/# Begin Fence	/
 				p
-				$ { b endfence }
+				$ { b endfenceout }
 				n
 				/^${line}\\$/! {
-					i cat <<'OUTPUT'
+					i cat <<'OUTPUT' | "\${1:-cat}"
 					b _code_fenced_in
 				}
-				i # Begin Input
-				i cat <<'INPUT'
+				i cat <<'INPUT' | "\${2:-cat}"
 				a INPUT
-				a # End Input
-				a # Begin Output
-				a cat <<'OUTPUT'
+				a cat <<'OUTPUT' | "\${1:-cat}"
 				###  EINPUT
 				${remove_number}
 
@@ -136,13 +140,9 @@ runup_builder () {
 			:_ecode_fenced_in
 				/^${line}\\$/ {
 					i OUTPUT
-					i # End Output
-					i # Begin Input
-					i cat <<'INPUT'
+					i cat <<'INPUT' | "\${2:-cat}"
 					a INPUT
-					a # End Input
-					a # Begin Output
-					a cat <<'OUTPUT'
+					a cat <<'OUTPUT' | "\${1:-cat}"
 					###  EINPUT
 					${remove_number}
 
@@ -173,42 +173,31 @@ runup_builder () {
 			    b _ecode_fenced_in
 
 			:_ecode_fenced_close
-				i # End Output
 				b _code_fenced_close
 
 			:_ecode_indented_open
-				i # Start Code Indent
 				/^${line}${tab}\\$/! {
-					i cat <<'OUTPUT'
+					i cat <<'OUTPUT' | "\${1:-cat}"
 					b _code_indented
 				}
 				x
-				/^real$/! {
+				/^repl/! {
 					b _code_indented
 				}
 				x
-				i # Begin Input
-				i cat <<'INPUT'
+				i cat <<'INPUT' | "\${2:-cat}"
 				a INPUT
-				a # End Input
-				a # Begin Output
-				a cat <<'OUTPUT'
+				a cat <<'OUTPUT' | "\${1:-cat}"
 				###  EINPUT
-				s/^${line}${tab}*\(${tab}\|\s\)*//
-
-				p
+				s/^${line}${tab}*\(${tab}\|\s\)*//p
 				$ { b endcodeout }
 				n
 			:_ecode_indented
 				/^${line}${tab}\\$/ {
 					i OUTPUT
-					i # End Output
-					i # Begin Input
-					i cat <<'INPUT'
+					i cat <<'INPUT' | "\${2:-cat}"
 					a INPUT
-					a # End Input
-					a # Begin Output
-					a cat <<'OUTPUT'
+					a cat <<'OUTPUT' | "\${1:-cat}"
 					###  EINPUT
 					s/^${line}${tab}*\(${tab}\|\s\)*//
 
@@ -219,21 +208,26 @@ runup_builder () {
 				}
 				###  EOUTPUT
 				s/^${line}${tab}*\(${tab}\|\s\)*//
-
 				p
 				$ { b endcodeout }
 				n
 			    ${doc_indent} { b _ecode_indented }
 			    ${empty_line}   { b _ecode_indented }
+			    ${doc_elink}    { b _elink }
 			    ${doc_line}   {
 			    	i OUTPUT
-					i # End Output
 			    	b _code_indented_close
 			    }
 			    b _docfile
 
 			:_code_indented_open
-				i # Begin Code Indent
+				i OUTPUT
+				i }
+				h
+				s/^\([0-9][0-9]*\)${tab}\(.*\)/${prefix}indent_\1 () {/
+				p
+				x
+				i cat <<'OUTPUT' | "\${1:-cat}"
 				b _code_indented
 
 			:_code_indented
@@ -248,29 +242,32 @@ runup_builder () {
 			    ${doc_indent} { b _code_indented }
 			    ${empty_line}   { b _code_indented }
 			    ${doc_line}   { b _code_indented_close }
+			    ${doc_elink}    { b _elink }
 			    b _docfile
 
 			:_code_indented_close
+			    ${doc_elink}    { b _elink }
 		    	i OUTPUT
 				i }
-				i # End Output
-				i # End Code Indent
-				i # Begin Text
 				${doc_text_mark}
-				b _body
+				b _body_in
 
 			:_code_fenced
-				i # End Text
-				s/^/# Begin Code Fence	/
-				p
-				$ { b endfence }
+				i OUTPUT
+				i }
+				s/^\([0-9][0-9]*\)${tab}\(.*\)/${prefix}fence_\1 () {/p
+				$ { b endfenceout }
 				n
+				/^${line}\\$/! {
+					i cat <<'OUTPUT' | "\${1:-cat}"
+					b _code_fenced_in
+				}
 			:_code_fenced_in
 				###  FENCE
 				${remove_number}
 
 				p
-				$ { b endfence }
+				$ { b endfenceout }
 				n
 			    ${doc_fence} {
 			        G
@@ -295,42 +292,36 @@ runup_builder () {
 				p
 				$ { b endstream }
 				n
-				i # Begin Text
 				${doc_text_mark}
 				b _body_in
 
 			:endbody
 				a OUTPUT
 				a }
-				a # End Text
-				a # End File
+				a [ -z "\${@:-}" ] || ${prefix}\${@:-:}
 				a }
-				a # End Stream
+				a [ -z "\${@:-}" ] || ${prefix}\${@:-:}
 				q
 			:endcodeout
 		    	a OUTPUT
-				a # End Output
 			:endcode
 				a }
-				a # End Code Indent
-				a # End File
+				a [ -z "\${@:-}" ] || ${prefix}\${@:-:}
 				a }
-				a # End Stream
+				a [ -z "\${@:-}" ] || ${prefix}\${@:-:}
 				q
 			:endfenceout
 		    	a OUTPUT
-				a # End Output
 			:endfence
 				a }
-				a # End Fence
-				a # End File
+				a [ -z "\${@:-}" ] || ${prefix}\${@:-:}
 				a }
-				a # End Stream
+				a [ -z "\${@:-}" ] || ${prefix}\${@:-:}
 				q
 			:endstream
-				a # End File
+				a [ -z "\${@:-}" ] || ${prefix}\${@:-:}
 				a }
-				a # End Stream
+				a [ -z "\${@:-}" ] || ${prefix}\${@:-:}
 				q
 
 		SED
