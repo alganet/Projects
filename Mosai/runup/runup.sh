@@ -5,6 +5,7 @@
 
 runup_sed="${PWD}/../runup/runup.sed"
 runup_tab=$(printf '\t')
+runup_prefix="_r_"
 
 runup () {
 	dispatch runup "${@:-}"
@@ -65,14 +66,14 @@ runup_command_each () {
 	runup_command_statements "${@:-}" >/dev/null
 	for file in ${@:-}; do
 		hashed="$(echo "${PWD}/${file}" | md5sum --text | sed 's/[^a-f0-9]//g')"
-		runup_file_$hashed runup_prop_name
+		${runup_prefix}file_${hashed} path_${hashed}
 	done
 }
 
 runup_command_source () {
 	[ -f "${runup_sed}" ] &&
 		transpile_sed="sed -n -f" ||
-		transpile_sed="sed -n" runup_sed="$(runup_builder '_r_')"
+		transpile_sed="sed -n" runup_sed="$(runup_builder $runup_prefix)"
 
 	while [ ! -z "${1:-}" ]
 	do

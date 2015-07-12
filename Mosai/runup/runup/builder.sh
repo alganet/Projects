@@ -69,6 +69,7 @@ runup_builder () {
 				a OUTPUT
 				${param_dispatch}
 				a }
+				a }
 				n
 			    b stream
 
@@ -87,7 +88,6 @@ runup_builder () {
 			    ${doc_elink}    { b _elink }
 			    ${doc_line}     { b _body }
 			    b _docfile
-
 
 			:_elink
 				i OUTPUT
