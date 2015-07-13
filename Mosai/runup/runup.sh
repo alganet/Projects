@@ -46,7 +46,7 @@ runup_context () {
 }
 
 
-runup_command_statements () {
+runup_command_load () {
 	sourceargs="${@:-}"
 	set --
 	eval "
@@ -59,11 +59,11 @@ runup_command_statements () {
 
 
 runup_command_blueprint () {
-	runup_command_statements "${@:-}" | sed -n '/() {$/p; /^}$/p;/^runup_[A-Za-z0-9_]* () (/p;'
+	runup_command_load "${@:-}" | sed -n '/() {$/p; /^}$/p;/^runup_[A-Za-z0-9_]* () (/p;'
 }
 
 runup_command_each () {
-	runup_command_statements "${@:-}" >/dev/null
+	runup_command_load "${@:-}" >/dev/null
 	for file in ${@:-}; do
 		hashed="$(echo "${PWD}/${file}" | md5sum --text | sed 's/[^a-f0-9]//g')"
 		${runup_prefix}file_${hashed} path_${hashed}

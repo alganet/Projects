@@ -22,7 +22,7 @@ runup_builder () {
 		# Sed expression to close an open fence
 		close_fence="s/^\(${line}\)\(~~~\|\`\`\`\).*/\1\2/"
 		# Sed expression to add shell code that expands parameters
-		param_dispatch="a [ -z \"\${@:-}\" ] || ${prefix}\${@:-:}"
+		param_dispatch="a [ -z \"\${@:-}\" ] || ${prefix}\${@:-}"
 		block_output="i cat <<'OUTPUT' | \"\${1:-cat}\""
 		block_input="i cat <<'INPUT' | \"\${2:-cat}\""
 		fence_common="$(cat <<-SED
