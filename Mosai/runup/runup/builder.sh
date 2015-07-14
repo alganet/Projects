@@ -22,9 +22,9 @@ runup_builder () {
 		# Sed expression to close an open fence
 		close_fence="s/^\(${line}\)\(~~~\|\`\`\`\).*/\1\2/"
 		# Sed expression to add shell code that expands parameters
-		param_dispatch="a [ -z \"\${@:-}\" ] || ${prefix}\${@:-}"
-		block_output="i cat <<'OUTPUT' | \"\${1:-cat}\""
-		block_input="i cat <<'INPUT' | \"\${2:-cat}\""
+		param_dispatch="a if [ -z \"\${1:-}\" ]; then echo \"\$${prefix}list\" | tr ':' '\\\\n'; else ${prefix}\${@:-}; fi"
+		block_output="cat <<'OUTPUT' | \"\${1:-cat}\""
+		block_input="cat <<'INPUT' | \"\${2:-cat}\""
 		fence_common="$(cat <<-SED
 			        G
 
@@ -38,12 +38,15 @@ runup_builder () {
 				SED
 		)"
 		# Expression to mark the starting line of a text with a function
-		doc_text_mark="
+		doc_text_mark="$(cat <<-SED
 				h
-				s/^\([0-9][0-9]*\)${tab}\(.*\)/${prefix}text_\1 () {/p
-				${block_output}
+				s/^\([0-9][0-9]*\)${tab}\(.*\)/${prefix}list=\"\${${prefix}list:-}:text_\1\"\\
+				${prefix}text_\1 () {\\
+				/p
+				i ${block_output}
 				x
-		"
+		SED
+		)"
 		# Main sed script built with templates above
         cat <<-SED
 			:stream
@@ -58,8 +61,10 @@ runup_builder () {
 
 			:_file
 				s/^${line}//
-				s/^\([a-f0-9]*\)${tab}\(.*\)/${prefix}file_\1 () {\\
+				s/^\([a-f0-9]*\)${tab}\(.*\)/${prefix}list="\${${prefix}list:-}:file_\1"\\
+				${prefix}file_\1 () {\\
 				${prefix}path_\1 () ( echo \'\2\' ) /p
+				i ${prefix}list="text_0"
 				i ${prefix}text_0 () {
 				${doc_text_mark}
 				n
@@ -67,8 +72,8 @@ runup_builder () {
 
 			:_docfile
 				a OUTPUT
-				${param_dispatch}
 				a }
+				${param_dispatch}
 				a }
 				n
 			    b stream
@@ -101,9 +106,11 @@ runup_builder () {
 			:_elink_file
 				x
 				###  TEXT
-				s${doc_elink}${prefix}meta_\3 () {\\
-				${prefix}prop_name () ( echo \'\4\' ) /
+				s${doc_elink}${prefix}ns_\3 () {\\
+				${prefix}title () ( echo \'\4\' ) /
 				s/\([a-zA-Z0-9]*\):/\1_/g
+				s/^${prefix}\([a-zA-Z0-9_]*\)/${prefix}list="\${${prefix}list:-}:\1"\\
+				${prefix}\1/
 				/^$/ { s/^.*$/default/ }
 				p
 			:_elink_common
@@ -131,7 +138,7 @@ runup_builder () {
 					h
 					b _ecode_fenced
 				}
-				${block_output}
+				i ${block_output}
 				b _body
 
 			:_ecode_fenced
@@ -140,12 +147,12 @@ runup_builder () {
 				$ { b endfenceout }
 				n
 				/^${line}\\$/! {
-					${block_output}
+					i ${block_output}
 					b _code_fenced_in
 				}
-				${block_input}
+				i ${block_input}
 				a INPUT
-				${block_output}
+				a ${block_output}
 				###  EINPUT
 				${remove_number}
 
@@ -155,9 +162,9 @@ runup_builder () {
 			:_ecode_fenced_in
 				/^${line}\\$/ {
 					i OUTPUT
-					${block_input}
+					i ${block_input}
 					a INPUT
-					${block_output}
+					i ${block_output}
 					###  EINPUT
 					${remove_number}
 
@@ -181,7 +188,7 @@ runup_builder () {
 
 			:_ecode_indented_open
 				/^${line}${tab}\\$/! {
-					${block_output}
+					i ${block_output}
 					b _code_indented
 				}
 				x
@@ -189,9 +196,9 @@ runup_builder () {
 					b _code_indented
 				}
 				x
-				${block_input}
+				i ${block_input}
 				a INPUT
-				${block_output}
+				i ${block_output}
 				###  EINPUT
 				s/^${line}${tab}*\(${tab}\|\s\)*//p
 				$ { b endcodeout }
@@ -199,9 +206,9 @@ runup_builder () {
 			:_ecode_indented
 				/^${line}${tab}\\$/ {
 					i OUTPUT
-					${block_input}
+					i ${block_input}
 					a INPUT
-					${block_output}
+					i ${block_output}
 					###  EINPUT
 					s/^${line}${tab}*\(${tab}\|\s\)*//
 
@@ -228,10 +235,11 @@ runup_builder () {
 				i OUTPUT
 				i }
 				h
-				s/^\([0-9][0-9]*\)${tab}\(.*\)/${prefix}indent_\1 () {/
+				s/^\([0-9][0-9]*\)${tab}\(.*\)/${prefix}list="\${${prefix}list:-}:indent_\1"\\
+				${prefix}indent_\1 () {/
 				p
-				x
-				${block_output}
+		:indent_\1		x
+				i ${block_output}
 				b _code_indented
 
 			:_code_indented
@@ -260,11 +268,12 @@ runup_builder () {
 			:_code_fenced
 				i OUTPUT
 				i }
-				s/^\([0-9][0-9]*\)${tab}\(.*\)/${prefix}fence_\1 () {/p
+				s/^\([0-9][0-9]*\)${tab}\(.*\)/${prefix}list="\${${prefix}list:-}:fence_\1"\\
+				${prefix}fence_\1 () {/p
 				$ { b endfenceout }
 				n
 				/^${line}\\$/! {
-					${block_output}
+					i ${block_output}
 					b _code_fenced_in
 				}
 			:_code_fenced_in

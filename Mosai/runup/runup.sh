@@ -29,11 +29,7 @@ runup_option_version () {
 
 runup_option_help () {
 	cat <<-HELP
-		Usage: runup [COMMAND]
-
-		Commands: source     [FILE]  Transforms a markdown file in code
-		          statements [FILE]  Lists the code structure for the file
-		          blueprint  [FILE]  Prints the function blueprint for a file
+		Usage: runup source [FILES]  Output markdown [FILES] as code
 	HELP
 }
 
@@ -57,23 +53,14 @@ runup_command_load () {
 	set "${sourceargs}"
 }
 
-
-runup_command_blueprint () {
-	runup_command_load "${@:-}" | sed -n '/() {$/p; /^}$/p;/^runup_[A-Za-z0-9_]* () (/p;'
-}
-
-runup_command_each () {
-	runup_command_load "${@:-}" >/dev/null
-	for file in ${@:-}; do
-		hashed="$(echo "${PWD}/${file}" | md5sum --text | sed 's/[^a-f0-9]//g')"
-		${runup_prefix}file_${hashed} path_${hashed}
-	done
-}
-
 runup_command_source () {
-	[ -f "${runup_sed}" ] &&
-		transpile_sed="sed -n -f" ||
-		transpile_sed="sed -n" runup_sed="$(runup_builder $runup_prefix)"
+	if [ -f "${runup_sed}" ]
+	then
+		transpile_sed="sed -n -f"
+	else
+		transpile_sed="sed -n"
+		runup_sed="$(runup_builder $runup_prefix)"
+	fi
 
 	while [ ! -z "${1:-}" ]
 	do
