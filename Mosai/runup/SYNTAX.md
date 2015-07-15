@@ -66,7 +66,7 @@ Source:
 Annotated code blocks have an annotation prefix to tell *runup* how to map
 them to commands.
 
-[ ]:sample:indented
+[ ]:sample:indented (zoid)
 
 	This
 	is

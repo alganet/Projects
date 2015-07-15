@@ -5,7 +5,7 @@
 
 runup_sed="${PWD}/../runup/runup.sed"
 runup_tab=$(printf '\t')
-runup_prefix="_r_"
+runup_prefix=""
 
 runup () {
 	dispatch runup "${@:-}"
@@ -29,7 +29,11 @@ runup_option_version () {
 
 runup_option_help () {
 	cat <<-HELP
-		Usage: runup source [FILES]  Output markdown [FILES] as code
+		Usage: runup source [COMMAND]
+
+		Commands: source [FILES]       Output markdown [FILES] as code
+		          list   [FILES]       Output list of resources for [FILES]
+		          get    [RES] [FILES] GET resource [RES] on [FILES]
 	HELP
 }
 
@@ -45,12 +49,54 @@ runup_context () {
 runup_command_load () {
 	sourceargs="${@:-}"
 	set --
-	eval "
-		set -v
-		$(runup_command_source ${sourceargs})
-		set +v
-	" 2>&1
+	eval "$(runup_command_source ${sourceargs})" 2>&1
 	set "${sourceargs}"
+}
+
+runup_command_get () {
+	resource="$(echo "${1}" | tr ':' ' ')"
+	[ -z "$resource" ] && return
+	shift
+	filelist="${@:-}"
+	runup_prefix="${runup_prefix:-_${RANDOM}}${RANDOM}_"
+	runup_command_load "${filelist}" >/dev/null
+	set -- ${resource}
+	${runup_prefix}${resource} >/dev/null
+	eval "echo \$${runup_prefix}list | tr ':' '\\n'" |
+	while read subitem
+	do
+		${runup_prefix}${subitem}
+	done
+}
+
+runup_command_list () {
+	filelist="${@:-}"
+	runup_prefix="${runup_prefix:-_${RANDOM}}${RANDOM}_"
+	runup_command_load "${filelist}" >/dev/null
+	cat <<-HELP
+	Usage: $0 get [RESOURCE] $@
+
+	Resources:
+	HELP
+	eval "echo \$${runup_prefix}list" | tr ':' '\n' | while read item
+	do
+		if [ ! -z "$item" ]
+		then
+			case "$item" in
+				file_* )
+					cat <<-HELP
+					  $item
+					HELP
+					${runup_prefix}${item} | while read subitem
+					do
+						cat <<-HELP
+						   :$subitem
+						HELP
+					done
+					;;
+			esac
+		fi
+	done
 }
 
 runup_command_source () {
@@ -59,13 +105,20 @@ runup_command_source () {
 		transpile_sed="sed -n -f"
 	else
 		transpile_sed="sed -n"
-		runup_sed="$(runup_builder $runup_prefix)"
+		runup_sed="$(runup_builder ${runup_prefix:-_${RANDOM}_})"
 	fi
+
+	if [ -z "${@:-}" ]
+	then
+		set -- $(find -name '*.md' | tr '\n' ' ')
+	fi
+	rescount="$#"
 
 	while [ ! -z "${1:-}" ]
 	do
 		echo
-		runup_prepare "${PWD}/${1}"
+		resno="$#"
+		runup_prepare "${PWD}/${1}" "$(( rescount - resno ))"
 		shift
 	done | ${transpile_sed} "${runup_sed}"
 }
@@ -76,7 +129,7 @@ runup_command_build () {
 
 runup_prepare () {
 	runup_filename="${1}"
-	runup_hashed="$(echo "${runup_filename}" | md5sum --text | sed 's/[^a-f0-9]//g')"
+	runup_hashed="${2}"
 	echo "0${runup_tab}${runup_hashed}${runup_tab}${runup_filename}"
 	sed '=' "$runup_filename" | sed "N;s/\n/${runup_tab}/"
 }
