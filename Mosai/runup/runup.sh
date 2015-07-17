@@ -29,11 +29,14 @@ runup_option_version () {
 
 runup_option_help () {
 	cat <<-HELP
-		Usage: runup source [COMMAND]
+		Usage: $0 source [COMMAND]
 
-		Commands: source [FILES]       Output markdown [FILES] as code
-		          list   [FILES]       Output list of resources for [FILES]
-		          get    [RES] [FILES] GET resource [RES] on [FILES]
+		Commands: source [FILES]  Prints markdown [FILES] as code
+		          list   [FILES]  Output a list of [FILES] resources
+
+
+		Examples: $0 source FILE.md | sh file_0
+		          $0 list FILE.md
 	HELP
 }
 
@@ -53,48 +56,38 @@ runup_command_load () {
 	set "${sourceargs}"
 }
 
-runup_command_get () {
-	resource="$(echo "${1}" | tr ':' ' ')"
-	[ -z "$resource" ] && return
-	shift
-	filelist="${@:-}"
-	runup_prefix="${runup_prefix:-_${RANDOM}}${RANDOM}_"
-	runup_command_load "${filelist}" >/dev/null
-	set -- ${resource}
-	${runup_prefix}${resource} >/dev/null
-	eval "echo \$${runup_prefix}list | tr ':' '\\n'" |
-	while read subitem
-	do
-		${runup_prefix}${subitem}
-	done
-}
-
 runup_command_list () {
 	filelist="${@:-}"
 	runup_prefix="${runup_prefix:-_${RANDOM}}${RANDOM}_"
 	runup_command_load "${filelist}" >/dev/null
-	cat <<-HELP
-	Usage: $0 get [RESOURCE] $@
-
-	Resources:
-	HELP
-	eval "echo \$${runup_prefix}list" | tr ':' '\n' | while read item
+	eval "echo \$${runup_prefix}list" |
+	tr ':' '\n' | while read item
 	do
 		if [ ! -z "$item" ]
 		then
-			case "$item" in
-				file_* )
-					cat <<-HELP
-					  $item
-					HELP
-					${runup_prefix}${item} | while read subitem
-					do
-						cat <<-HELP
-						   :$subitem
-						HELP
-					done
+			printf "${item}: "
+			${runup_prefix}${item} >/dev/null
+			${runup_prefix}${item}_path echo
+			eval "echo \$${runup_prefix}list" |
+			tr ':' '\n' |
+			while read subitem
+			do
+				case "${subitem}" in
+					ns_* )
+						printf "${runup_tab}${subitem}: "
+						${runup_prefix}${subitem}_name
+						echo
 					;;
-			esac
+					doc_fence*  )
+						printf "${runup_tab}${subitem}: "
+						${runup_prefix}${subitem}_spec
+						echo
+					;;
+					doc_*  )
+						echo "${runup_tab}${subitem}"
+					;;
+				esac
+			done
 		fi
 	done
 }
@@ -108,7 +101,7 @@ runup_command_source () {
 		runup_sed="$(runup_builder ${runup_prefix:-_${RANDOM}_})"
 	fi
 
-	if [ -z "${@:-}" ]
+	if [ -z "${1:-}" ]
 	then
 		set -- $(find -name '*.md' | tr '\n' ' ')
 	fi

@@ -90,6 +90,7 @@ Source:
 		This
 		is
 		an
+
 		indented
 		block
 
@@ -114,20 +115,30 @@ blocks. *runup* can parse their structure as well:
 [ ]:repl:sample:indented
 
 	$ echo This is an indented block
-	This is an indented block
+	$ echo This is an indented block
+
+
+
+
+	$ echo This is an indented block
+
+	$
 
 [ ]:repl:sample:ticked
 
 ```
 $ echo This is a ticked block
-This is a ticked block
+$ echo This is a ticked block
+$ echo This is a ticked block
+$ echo This is a ticked block
 ```
 
 [ ]:repl:sample:tilded
 
 ~~~
 $ echo This is a tilded block
-This is a tilded block
+$ echo This is a tilded block
+$ echo This is a tilded block
 ~~~
 
 

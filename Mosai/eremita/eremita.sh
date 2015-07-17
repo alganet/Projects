@@ -24,24 +24,26 @@ eremita_option_h () {
 # Long help function (eremita --help)
 eremita_option_help () {
 	cat <<-HELP
-		Usage: eremita [OPTIONS] [COMMANDS]
+	Usage: eremita [OPTIONS] [COMMANDS]
 
-		eremita is a POSIX Shell Script namespace and loading convention.
+	eremita is a POSIX Shell Script namespace and loading convention.
 
-		Commands: eremita open [TARGET]  Opens a target namespace
-		          eremita list           Lists current available libraries
+	Commands: eremita open [TARGET]  Opens a target namespace
+	          eremita list           Lists current available libraries
 
-		Options: --help      | -h  Displays this text and exit
-		         --version   | -V  Displays version info and exit
-		         --verbose   | -v  Enables verbose mode
+	Options: --help      | -h  Displays this text and exit
+	         --version   | -V  Displays version info and exit
+	         --verbose   | -v  Enables verbose mode
 	HELP
 }
 
 eremita_command_list () {
-	find "$(cd "${eremita}/..";pwd)" -name "*.sh" |
+	find "$(cd "${eremita}/..";pwd)" -name "*.sh"   |
 		while read sibling; do
-			libname="$(printf %s "$sibling" | sed 's,.*/\(.*\).sh,\1,')"
-			libdir="$(printf %s "$sibling" | sed 's,/[^/]*$,,;s,.*/,,')"
+			libname="$(printf %s "$sibling" |
+				   sed 's,.*/\(.*\).sh,\1,')"
+			libdir="$(printf %s "$sibling"  |
+				  sed 's,/[^/]*$,,;s,.*/,,')"
 			[ "$libname" = "$libdir" ] && echo "$libname"
 		done
 }
@@ -50,8 +52,8 @@ eremita_command_list () {
 eremita_command_open () {
 	target="${1:-}"               # Keep target name
 
-	[ -z "${target}" ]      &&    # If no target...
-		eremita_command_list &&    # ...show list...
+	[ -z "${target}" ]           &&   # If no target...
+		eremita_command_list &&   # ...show list...
 		return                    # ...and exit.
 
 	shift                         # Remove first argument
