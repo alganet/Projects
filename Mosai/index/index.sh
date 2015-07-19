@@ -1,35 +1,35 @@
 #!/usr/bin/env sh
 
-# Define the eremita namespace
-export eremita="${eremita:-$(cd "$(dirname "$0")";pwd)}"
+# Define the index namespace
+export index="${index:-$(cd "$(dirname "$0")";pwd)}"
 
 # Load required libraries
-. "${eremita}/../dispatch/dispatch.sh"
+. "${index}/../dispatch/dispatch.sh"
 
 # Main function and namespace, dispatches calls to others
-eremita () {
-	dispatch eremita "${@:-}"
+index () {
+	dispatch index "${@:-}"
 }
 
 # Function called by the dispatch library when no namespace is found
-eremita_missing () {
+index_missing () {
 	echo "Call '${@:-}' not found."
 }
 
-# Short help function (eremita -h)
-eremita_option_h () {
-	eremita_option_help
+# Short help function (index -h)
+index_option_h () {
+	index_option_help
 }
 
-# Long help function (eremita --help)
-eremita_option_help () {
+# Long help function (index --help)
+index_option_help () {
 	cat <<-HELP
-	Usage: eremita [OPTIONS] [COMMANDS]
+	Usage: index [OPTIONS] [COMMANDS]
 
-	eremita is a POSIX Shell Script namespace and loading convention.
+	index is a POSIX Shell Script namespace and loading convention.
 
-	Commands: eremita open [TARGET]  Opens a target namespace
-	          eremita list           Lists current available libraries
+	Commands: index open [TARGET]  Opens a target namespace
+	          index list           Lists current available libraries
 
 	Options: --help      | -h  Displays this text and exit
 	         --version   | -V  Displays version info and exit
@@ -37,8 +37,8 @@ eremita_option_help () {
 	HELP
 }
 
-eremita_command_list () {
-	find "$(cd "${eremita}/..";pwd)" -name "*.sh"   |
+index_command_list () {
+	find "$(cd "${index}/..";pwd)" -name "*.sh"   |
 		while read sibling; do
 			libname="$(printf %s "$sibling" |
 				   sed 's,.*/\(.*\).sh,\1,')"
@@ -48,19 +48,20 @@ eremita_command_list () {
 		done
 }
 
-# Open a namespace (eremita open mylib)
-eremita_command_open () {
+# Open a namespace (index open mylib)
+index_command_open () {
 	target="${1:-}"               # Keep target name
 
 	[ -z "${target}" ]           &&   # If no target...
-		eremita_command_list &&   # ...show list...
+		index_command_list &&   # ...show list...
 		return                    # ...and exit.
 
+	orig_args="${@:-}"
 	shift                         # Remove first argument
 	args="${@:-}"                 # Store current arguments
 	current="$(pwd)"              # Store current folder
 	set --                        # Remove arguments
-	cd "${eremita}"               # Change into eremita folder
+	cd "${index}"                 # Change into index folder
 	[ -z "${target}" ] && return
 	. "../${target}/${target}.sh" # Load target source
 	cd "${current}"               # Back to stored folder
@@ -68,4 +69,4 @@ eremita_command_open () {
 	unset current args target     # Remove variables
 }
 
-eremita "${@:-}"
+index "${@:-}"

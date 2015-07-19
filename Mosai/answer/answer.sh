@@ -1,23 +1,5 @@
 #!/usr/bin/env sh
 
-# This script captures keyboard events on popular POSIX Shells.
-#
-# Run it by executing ./answer.sh and press the arrow keys
-# to see the capture exemple. Press Return to exit.
-#
-# It has been tested on:
-#  - Windows (Git Bash and MSYS+Mintty)
-#  - OS X (native terminal, Yosemite)
-#  - Linux (Ubuntu dash and bash)
-#
-# It should work on other POSIX compatible shells like zsh and ksh
-# just fine.
-#
-# It is somewhat reusable, just change or redeclare the answer_keypress
-# function with your own bindings.
-#
-# Capturing code was inspired by http://www.mtxia.com/js/Downloads/Scripts/Korn/Functions/visualSelect/index.shtml
-
 # Enables word split on zsh
 setopt SH_WORD_SPLIT >/dev/null 2>&1 || :
 

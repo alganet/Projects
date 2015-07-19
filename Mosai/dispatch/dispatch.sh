@@ -9,7 +9,7 @@ dispatch ()
 	short="${arg#*-}"  # First argument without trailing -
 	long="${short#*-}" # First argument without trailing --
 
-	# Exit and warn if no first argument is found
+	# Exit no first argument is found
 	if [ -z "$arg" ]
 	then
 		return 0
