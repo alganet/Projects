@@ -1,8 +1,4 @@
-Hello Friend!
-=============
-
-To display a Hello message, use the following code:
-
+[~]:example:hello (An annotated code block!)
 ```sh
-	echo Hello World
+echo Hello
 ```

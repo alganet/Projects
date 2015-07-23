@@ -9,9 +9,7 @@ mid () ( dispatch mid "${@:-}" )
 
 # Setting defaults
 mid_tab=$(printf '\t')
-mid_prefix="md_"
 mid_parser=""
-mid_env="/usr/bin/env sh"
 
 # What to do when command is not found
 mid_missing () {
@@ -59,24 +57,13 @@ mid_option_help () {
 }
 
 mid_named           () ( sed -n '/^doc_/!p' )
-mid_command_inspect () ( mid_parser_do "${1:-}" list )
-mid_command_list    () ( mid_parser_do "${1:-}" list | mid_named )
-mid_command_open    () ( mid_parser_do "${1:-}" open )
+mid_command_inspect () ( mid_parser_do list "${@:-}" )
+mid_command_list    () ( mid_parser_do list "${@:-}" | mid_named )
+mid_command_open    () ( mid_parser_do open "${@:-}" )
 
 # Gets the source for a markdown file
 mid_command_source () {
-	transpile_sed="sed -n"
-	mid_sed="$(mid_parser_build ${mid_prefix})"
-	if [ -f "${mid_parser}" ]
-	then
-		transpile_sed="sed -n -f"
-		mid_sed="${mid_parser}"
-	fi
-
-	if [ -f "${1:-}" ]
-	then
-		mid_prepare "${PWD}/${1}" | ${transpile_sed} "${mid_sed}"
-	fi
+	mid_parse "${@:-}"
 }
 
 
@@ -85,6 +72,33 @@ mid_command_build () {
 	mid_parser_build "${mid_prefix}"
 }
 
+mid_action_list ()
+{
+	cat <<-SHELL
+		echo "\${${mid_prefix}list}" | sed 's/\([a-zA-Z0-9]*\)_/\1:/g'
+	SHELL
+}
+
+mid_action_open ()
+{
+	maincall="${1:-}"
+	maincommand="$(printf "${maincall}" | tr ':' '_')"
+	shift
+	mainargs="${@:-}"
+	set --
+	case "${maincall}" in
+		doc:* )
+			cat <<-SHELL
+				"${mid_prefix}${maincommand}" "${mainargs:-}" 2>/dev/null
+			SHELL
+			;;
+		* )
+			cat <<-SHELL
+				"${mid_prefix}${maincommand}" "${mainargs:-}" 2>/dev/null
+			SHELL
+			;;
+	esac
+}
 
 mid "${@:-}"
 

@@ -1,42 +1,30 @@
-**mid** runs code inside Markdown documents.
-
-It is available as a 10KB portable shell library and command line tool.
+**mid** allows you to reuse code blocks from Markdown documentation!
 
 ---
 
-Example
--------
+It introduces the *annotation*:
 
-Consider the following Markdown document (displayed as plain text):
+[~]:file (HELLO.md)
 
-[~]:file:sample (HELLO.md)
-	Hello Friend!
-	=============
+    [~]:example:hello (An annotated code block!)
+    ```sh
+    echo Hello
+    ```
 
-	To display a Hello message, use the following code:
+Annotations are cool because they are:
 
-	```sh
-		echo Hello World
-	```
+  - Small simple one-liners for technical documents.
+  - Invisible to the HTML output. Only the code block will appear.
+  - Backwards-compatible with the [original Markdown](http://daringfireball.net/projects/markdown) and [CommonMark](http://commonmark.org/).
 
+---
 
-The first thing to do about Markdown files is list what *mid* sees about their structure:
+You can interact with annotated blocks using the **mid** tool:
 
-[~]:repl:list (Listing code blocks from a markdown document)
-	$ mid list HELLO.md
+[~]:example
 
-	        doc_text_1
-	        doc_fence_6
+    $ mid list HELLO.md
 
-That shows you the document elements that *mid* has found. To interact
-with them, you can use the source command:
-
-[~]:repl:source (Using the source generated from a markdown document)
-	$ mid source HELLO.md | sh -s doc_text_1
-	Hello Friend!
-	=============
-
-	To display a Hello message, use the following code:
-
-	$ mid source HELLO.md | sh -s doc_fence_6
-	        echo Hello World
+        example:hello
+        doc:fence:2
+    $ mid open HELLO.md example:hello

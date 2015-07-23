@@ -1,17 +1,21 @@
 #!/usr/bin/env sh
 
-mid_action_list ()
-{
-	cat <<-SHELL
-		echo "\${${mid_prefix}list}"
-	SHELL
-}
+mid_prefix="md_"
+mid_env="/usr/bin/env sh"
 
-mid_action_open ()
-{
-	cat <<-SHELL
-		echo "\${${mid_prefix}list}"
-	SHELL
+mid_parse () {
+	transpile_sed="sed -n"
+	mid_sed="$(mid_parser_build ${mid_prefix})"
+	if [ -f "${mid_parser}" ]
+	then
+		transpile_sed="sed -n -f"
+		mid_sed="${mid_parser}"
+	fi
+
+	if [ -f "${1:-}" ]
+	then
+		mid_prepare "${PWD}/${1}" | ${transpile_sed} "${mid_sed}"
+	fi
 }
 
 # Prepares the parser to run
@@ -24,12 +28,14 @@ mid_prepare () {
 
 # Does something in the parsers environment
 mid_parser_do () {
-	filename="${1:-}"
-	action="${2:-}"
+	action="${1:-}"
+	filename="${2:-}"
+	shift 2
+	doargs="${@:-}"
 	${mid_env} <<-SHELL
 		set -- '' :
 		$(mid_command_source "${filename}")
-		$(mid_action_${action})
+		$(mid_action_${action} "${doargs}")
 	SHELL
 	:
 }
@@ -160,10 +166,10 @@ mid_parser_build () {
 			s/${prefix}\([${alnum}_]*\):/${prefix}\1_/
 			t _meta_annotation_loop
 
-		s/^${prefix}\([${alnum}_]*\)_name/${prefix}list="\${${prefix}list:-}\\
+		s/^${prefix}\([${alnum}_]*\)_attr/${prefix}list="\${${prefix}list:-}\\
 		\	\1"\\
 		\\
-		${prefix}\1_name/
+		${prefix}\1_attr/
 		/^$/ { s/^.*$/default/ }
 		p
 		$ { b endmeta }
@@ -181,7 +187,7 @@ mid_parser_build () {
 			b _annotated_fence_open
 		}
 		h
-		s/^\(${digits}\)${tab}${anything}$/	echo doc_text_\1 | "\${1:-cat}"/p
+		s/^\(${digits}\)${tab}${anything}$/	echo doc_text_\1 | "\${1:-cat}" 1>\&2/p
 		g
 		i }
 		i

@@ -1,8 +1,10 @@
 My Versioned Incomplete Prototypes
 ==================================
 
-Future code to be published on http://github.com/Mosai as portable
-shell script code (for many, many platforms).
+Future code and ideas to be published on http://github.com/Mosai as
+portable shell script code (for many, many platforms).
+
+Mostly on one repo because they are still very dependant on each other.
 
 [mid](Mosai/mid/README.md)
 ---
