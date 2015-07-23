@@ -44,10 +44,9 @@ mid_option_help () {
 
 	mid
 
-	Commands: source  [FILE]  Prints markdown [FILE] as executable shell
-	          list    [FILE]  Lists named blocks for [FILE]
-	          inspect [FILE]  Lists all blocks for [FILE]
-	          build           Outputs sed parser for current env
+	Commands: source  [FILE]         Prints markdown [FILE] as executable shell
+	          list    [FILE]         Lists named [BLOCK]s for [FILE]
+	          open    [FILE] [BLOCK] Prints [BLOCK] for [FILE]
 
 	Options:  -h, --help           Displays help
 	          -V, --version        Displays version info
