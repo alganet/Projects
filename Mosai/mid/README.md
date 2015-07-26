@@ -1,30 +1,27 @@
-**mid** allows you to reuse code blocks from Markdown documentation!
+# Handling Empty Documents
 
----
+When processing source, an empty document should render a standard
+empty output.
 
-It introduces the *annotation*:
+[~]:test
 
-[~]:file (HELLO.md)
+    $ rm EMPTY.md       # Removing any previous test files
+    $ touch EMPTY.md    # Create an empty file
+    $ mid.sh source EMPTY.md > EMPTY.md.sh
+    $ cat EMPTY.md.sh   # No output
 
-    [~]:example:hello (An annotated code block!)
-    ```sh
-    echo Hello
-    ```
+[~]:test
 
-Annotations are cool because they are:
+    $ rm EMPTY.md       # Removing any previous test files
+    $ touch EMPTY.md    # Create an empty file
+    $ mid.sh source EMPTY.md > EMPTY.md.sh
+    $ cat EMPTY.md.sh   # No output
 
-  - Small simple one-liners for technical documents.
-  - Invisible to the HTML output. Only the code block will appear.
-  - Backwards-compatible with the [original Markdown](http://daringfireball.net/projects/markdown) and [CommonMark](http://commonmark.org/).
+[~]:test
 
----
+    $ rm EMPTY.md       # Removing any previous test files
+    $ touch EMPTY.md    # Create an empty file
+    $ mid.sh source EMPTY.md > EMPTY.md.sh
+    $ cat EMPTY.md.sh   # No output
 
-You can interact with annotated blocks using the **mid** tool:
 
-[~]:example
-
-    $ mid list HELLO.md
-
-        example:hello
-        doc:fence:2
-    $ mid open HELLO.md example:hello

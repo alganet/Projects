@@ -27,17 +27,12 @@ mid_prepare () {
 }
 
 # Does something in the parsers environment
-mid_parser_do () {
-	action="${1:-}"
-	filename="${2:-}"
+mid_load () {
+	filename="${1:-}"
 	shift 2
 	doargs="${@:-}"
-	${mid_env} <<-SHELL
-		set -- '' :
-		$(mid_command_source "${filename}")
-		$(mid_action_${action} "${doargs}")
-	SHELL
-	:
+	set -- '' :
+	eval "$(mid_parse "${filename}")"
 }
 
 # Builds a sed script that generates code from markdown files
@@ -114,6 +109,7 @@ mid_parser_build () {
 	# Main sed script built with templates above
         cat <<-SED
 	:_stream
+		$ { b endparsing }
 		/^$/ { n; b _stream }
 		${stream_doc} { b _document }
 		b endstream
@@ -158,10 +154,14 @@ mid_parser_build () {
 		s${doc_meta}\3/
 		s/[^${alnum}]/_/g
 		x
-		s${doc_meta}${prefix}\3_attr () ( echo '\4' | "\${1:-cat}"  )\\
+		s${doc_meta}${prefix}\3_\1_attr () ( echo '\4' | "\${1:-cat}"  )\\
 		\\
-		${prefix}\3 () {/
+		${prefix}\3_\1 () {/
 
+		/${prefix}\([${alnum}_]*\):/ {
+			s/_${digits}_attr () (/_attr () (/
+			s/_${digits} () {/ () {/
+		}
 		:_meta_annotation_loop
 			s/${prefix}\([${alnum}_]*\):/${prefix}\1_/
 			t _meta_annotation_loop
@@ -181,7 +181,12 @@ mid_parser_build () {
 
 		$ { b endmeta }
 		n
+		${empty_line}   { b _annotated_block }
 		${doc_indent}   { b _annotated_code_open }
+		${doc_meta}     {
+			i ${block_output}
+			b _meta_annotation
+		}
 		${doc_fence}    {
 			h
 			b _annotated_fence_open
@@ -195,7 +200,7 @@ mid_parser_build () {
 		b _print_text_line
 
 	:_annotated_fence_open
-		s/^\(${digits}\)${tab}\(${both_fences}\)\([${alnum}]*\)${anything}$/	echo doc_fence_\1 | "\${1:-cat}"\\
+		s/^\(${digits}\)${tab}\(${both_fences}\)\([${alnum}]*\)${anything}$/	echo doc_fence_\1 | "\${1:-cat}"  1>\&2\\
 		}\\
 		\\
 		${prefix}list="\${${prefix}list:-}\\
@@ -207,6 +212,10 @@ mid_parser_build () {
 		p
 		$ { b endoutput }
 		n
+		${doc_fence} {
+			i ${block_output}
+			b _code_fenced_close
+		}
 		/^${line}${prompt_spec}/! {
 			i ${block_output}
 			b _code_fenced_in
@@ -223,7 +232,7 @@ mid_parser_build () {
 
 	:_annotated_code_open
 		h
-		s/^\(${digits}\)${tab}${anything}/	echo doc_indent_\1 | "\${1:-cat}"\\
+		s/^\(${digits}\)${tab}${anything}/	echo doc_indent_\1 | "\${1:-cat}" 1>\&2\\
 		}\\
 		\\
 		${prefix}list="\${${prefix}list:-}\\
@@ -319,6 +328,10 @@ mid_parser_build () {
 		${prefix}doc_fence_\1 () {/p
 		$ { b endoutput }
 		n
+		${doc_fence} {
+			i ${block_output}
+			b _code_fenced_close
+		}
 		i ${block_output}
 		b _code_fenced_in
 
@@ -336,21 +349,18 @@ mid_parser_build () {
 
 			${doc_fence} {
 				${fence_common}
-
 				b _code_fenced_in
 			}
 			b _code_fenced_in
 		}
+		${doc_fence} {
+			${fence_common}
+			b _code_fenced_in
+		}
 		${remove_number}
-
 		p
 		$ { b endoutput }
 		n
-	    ${doc_fence} {
-	    	${fence_common}
-
-	        b _code_fenced_in
-	    }
 	    b _code_fenced_in
 
 	:_code_fenced_close
@@ -374,7 +384,9 @@ mid_parser_build () {
 	:endnormal
 		a }
 	:endstream
+		a ${prefix}list () ( echo "\$${prefix}list" )
 		${param_dispatch}
+	:endparsing
 		q
 
 	SED

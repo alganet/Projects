@@ -6,6 +6,8 @@ portable shell script code (for many, many platforms).
 
 Mostly on one repo because they are still very dependant on each other.
 
+Since 2015-07-25 I've been writing a comprehensive [(blog)changelog](CHANGELOG.md)
+
 [mid](Mosai/mid/README.md)
 ---
 

@@ -6,94 +6,76 @@ md_list="${md_list:-}
 md_doc_text_1 () {
 
 	cat <<'O_3CB6DFB8' | "${1:-cat}"
-**mid** allows you to reuse code blocks from Markdown documentation!
+# Handling Empty Documents
 
----
-
-It introduces the *annotation*:
+When processing source, an empty document should render a standard
+empty output.
 
 O_3CB6DFB8
 }
 
 md_list="${md_list:-}
-	file"
+	test_6"
 
-md_file_attr () ( echo 'HELLO.md' | "${1:-cat}"  )
+md_test_6_attr () ( echo '' | "${1:-cat}"  )
 
-md_file () {
-	echo doc_text_8 | "${1:-cat}" 1>&2
+md_test_6 () {
+	echo doc_indent_8 | "${1:-cat}" 1>&2
 }
 
 md_list="${md_list:-}
-	doc_text_8"
+	doc_indent_8"
 
-md_doc_text_8 () {
-
+md_doc_indent_8 () {
 	cat <<'O_3CB6DFB8' | "${1:-cat}"
-
+$ rm EMPTY.md       # Removing any previous test files
+$ touch EMPTY.md    # Create an empty file
+$ mid.sh source EMPTY.md > EMPTY.md.sh
+$ cat EMPTY.md.sh   # No output
 O_3CB6DFB8
 }
 
 md_list="${md_list:-}
-	doc_indent_9"
+	test_13"
 
-md_doc_indent_9 () {
+md_test_13_attr () ( echo '' | "${1:-cat}"  )
+
+md_test_13 () {
+	echo doc_indent_15 | "${1:-cat}" 1>&2
+}
+
+md_list="${md_list:-}
+	doc_indent_15"
+
+md_doc_indent_15 () {
 	cat <<'O_3CB6DFB8' | "${1:-cat}"
-[~]:example:hello (An annotated code block!)
-```sh
-echo Hello
-```
+$ rm EMPTY.md       # Removing any previous test files
+$ touch EMPTY.md    # Create an empty file
+$ mid.sh source EMPTY.md > EMPTY.md.sh
+$ cat EMPTY.md.sh   # No output
 O_3CB6DFB8
 }
 
 md_list="${md_list:-}
-	doc_text_14"
+	test_20"
 
-md_doc_text_14 () {
+md_test_20_attr () ( echo '' | "${1:-cat}"  )
 
+md_test_20 () {
+	echo doc_indent_22 | "${1:-cat}" 1>&2
+}
+
+md_list="${md_list:-}
+	doc_indent_22"
+
+md_doc_indent_22 () {
 	cat <<'O_3CB6DFB8' | "${1:-cat}"
-Annotations are cool because they are:
-
-  - Small simple one-liners for technical documents.
-  - Invisible to the HTML output. Only the code block will appear.
-  - Backwards-compatible with the [original Markdown](http://daringfireball.net/projects/markdown) and [CommonMark](http://commonmark.org/).
-
----
-
-You can interact with annotated blocks using the **mid** tool:
+$ rm EMPTY.md       # Removing any previous test files
+$ touch EMPTY.md    # Create an empty file
+$ mid.sh source EMPTY.md > EMPTY.md.sh
+$ cat EMPTY.md.sh   # No output
 
 O_3CB6DFB8
 }
-
-md_list="${md_list:-}
-	example"
-
-md_example_attr () ( echo '' | "${1:-cat}"  )
-
-md_example () {
-	echo doc_text_25 | "${1:-cat}" 1>&2
-}
-
-md_list="${md_list:-}
-	doc_text_25"
-
-md_doc_text_25 () {
-
-	cat <<'O_3CB6DFB8' | "${1:-cat}"
-
-O_3CB6DFB8
-}
-
-md_list="${md_list:-}
-	doc_indent_26"
-
-md_doc_indent_26 () {
-	cat <<'O_3CB6DFB8' | "${1:-cat}"
-$ mid list HELLO.md
-
-example:hello
-doc:fence:2
-$ mid open HELLO.md example:hello
-O_3CB6DFB8
-}
+md_list () ( echo "$md_list" )
 [ -z "${1:-}" ] && ${2:-echo} "$md_list" 1>&2 || md_${@:-}

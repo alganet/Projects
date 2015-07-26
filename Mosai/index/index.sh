@@ -1,10 +1,11 @@
-#!/usr/bin/env sh
+ #!/usr/bin/env sh
 
 # Define the index namespace
-export index="${index:-$(cd "$(dirname "$0")";pwd)}"
+index="${index:-$(cd "$(dirname "$0")";pwd)}/.."
 
 # Load required libraries
-. "${index}/../dispatch/dispatch.sh"
+. ${index:-..}/dispatch/dispatch.sh
+. ${index:-..}/index/loader.sh
 
 # Main function and namespace, dispatches calls to others
 index () {
@@ -26,14 +27,17 @@ index_option_help () {
 	cat <<-HELP
 	Usage: index [OPTIONS] [COMMANDS]
 
-	index is a POSIX Shell Script namespace and loading convention.
+	Loads shell script libraries by convention.
 
-	Commands: index open [TARGET]  Opens a target namespace
-	          index list           Lists current available libraries
+	Commands:
+	  open [TARGET]  Opens a target library.
+	  list           Lists current available libraries.
+	  hook [NAME]    Hooks 'index open' on your terminal to
+	                         the [NAME] command of your choice.
 
-	Options: --help      | -h  Displays this text and exit
-	         --version   | -V  Displays version info and exit
-	         --verbose   | -v  Enables verbose mode
+	Options:
+	  -h, --help     Displays this text and exit
+	  -V, --version  Displays version info and exit
 	HELP
 }
 
@@ -50,23 +54,12 @@ index_command_list () {
 
 # Open a namespace (index open mylib)
 index_command_open () {
-	target="${1:-}"               # Keep target name
+	index_loader "${@:-}"
+}
 
-	[ -z "${target}" ]           &&   # If no target...
-		index_command_list &&   # ...show list...
-		return                    # ...and exit.
-
-	orig_args="${@:-}"
-	shift                         # Remove first argument
-	args="${@:-}"                 # Store current arguments
-	current="$(pwd)"              # Store current folder
-	set --                        # Remove arguments
-	cd "${index}"                 # Change into index folder
-	[ -z "${target}" ] && return
-	. "../${target}/${target}.sh" # Load target source
-	cd "${current}"               # Back to stored folder
-	"${target}" "${args}"         # Open target
-	unset current args target     # Remove variables
+index_command_hook () {
+	# TODO check sanity for argument 1 to prevent shellshocking
+	echo eval "${1:-index} () ( ${index}/index.sh open "\${@:-}")"
 }
 
 index "${@:-}"
